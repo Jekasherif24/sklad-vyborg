@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Склад Выборг — запчасти</title>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,Roboto,Arial,sans-serif;background:#f3f4f6;color:#111;font-size:16px}
+.hidden{display:none!important}
+.wrap{max-width:560px;margin:0 auto;padding:12px}
+h1{font-size:22px;margin:24px 0 16px}
+label.f{display:block;margin:10px 0;font-size:14px;color:#444}
+label.f input,label.f select{display:block;width:100%;margin-top:4px;padding:12px;font-size:17px;border:1px solid #ccc;border-radius:10px;background:#fff}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 14px;font-size:16px;border-radius:10px;border:1px solid #ccc;background:#fff;color:#111;cursor:pointer}
+.primary{background:#1a73e8;border-color:#1a73e8;color:#fff}
+.big{width:100%;padding:16px;font-size:18px;margin-top:10px}
+.row{display:flex;gap:8px}.row>*{flex:1}
+header{display:flex;justify-content:space-between;align-items:center;padding:4px 0 10px}
+header b{font-size:15px}
+.link{border:none;background:none;color:#1a73e8;padding:6px}
+nav{display:flex;gap:6px;margin-bottom:12px}
+nav button{flex:1}
+nav button.on{background:#111;color:#fff;border-color:#111}
+.seg{display:flex;border:1px solid #ccc;border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:none;border-radius:0;background:#fff}
+.seg button.on{background:#1a73e8;color:#fff}
+#reader{margin-top:10px;border-radius:10px;overflow:hidden;background:#000}
+.muted{color:#666;font-size:13px;margin:6px 0}
+.err{color:#c5221f;margin-top:10px}
+.card{background:#fff;border-radius:12px;padding:10px 12px;margin:8px 0;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.item{display:flex;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #eee}
+.item:first-child{border-top:none}
+.item .nm{flex:1;font-size:14px}
+.item .nm small{display:block;color:#666}
+.qty{display:flex;align-items:center;gap:4px}
+.qty button{width:38px;height:38px;padding:0;font-size:20px}
+.qty input{width:56px;height:38px;text-align:center;font-size:17px;border:1px solid #ccc;border-radius:8px}
+.del{border:none;background:none;color:#c5221f;font-size:22px;padding:4px 6px}
+.res{padding:10px;border-top:1px solid #eee;font-size:14px}
+.res:first-child{border-top:none}
+.res small{color:#666}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:6px 4px;border-top:1px solid #eee;text-align:left;vertical-align:top}
+th{font-weight:600;color:#555;border-top:none}
+td.n{text-align:right;white-space:nowrap}
+.zn{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.zn b{font-size:16px}
+.warn{background:#fff4e5;border:1px solid #f0b35a;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:14px}
+.warn label{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:15px;font-weight:600}
+.warn input{width:24px;height:24px;flex:none}
+#toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:#111;color:#fff;padding:12px 16px;border-radius:10px;font-size:15px;max-width:90%;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+#toast.show{opacity:.95}#toast.bad{background:#c5221f}
+</style></head>
+<body><div class="wrap">
+
+<div id="login">
+  <h1>Склад Выборг</h1>
+  <label class="f">Механик<select id="lName"><option value="">Загрузка…</option></select></label>
+  <label class="f">ПИН<input id="lPin" type="password" inputmode="numeric" autocomplete="off"></label>
+  <button id="lBtn" class="primary big">Войти</button>
+  <div id="lErr" class="err"></div>
+</div>
+
+<div id="main" class="hidden">
+  <header><b id="who"></b><button id="logout" class="link">Выйти</button></header>
+  <nav><button data-tab="scan" class="on">Набрать запчасти</button><button data-tab="mine">Числится на мне</button></nav>
+
+  <section id="tab-scan">
+    <div class="seg" id="ops"><button data-op="Взял" class="on">Взял</button><button data-op="Вернул">Вернул</button><button data-op="Приход">Приход</button></div>
+    <label class="f" id="znLbl">Заказ-наряд / акт ВР<input id="zn" autocomplete="off" placeholder="например 101226"></label>
+    <div class="warn" id="camWarn"><b>Работайте под камерой!</b> <span id="camTxt">Берите запчасти так, чтобы руки и коробка были в зоне обзора камеры.</span><label id="camChk" class="hidden"><input type="checkbox" id="camOk">Кладу запчасти в ячейку под камерой</label></div>
+    <div class="row">
+      <button id="camBtn" class="primary">Сканировать камерой</button>
+      <label class="btn">Фото QR<input id="photo" type="file" accept="image/*" capture="environment" class="hidden"></label>
+    </div>
+    <div id="reader"></div><div id="readerFile" style="width:1px;height:1px;overflow:hidden"></div>
+    <div id="camMsg" class="muted">Любая операция — только сканированием QR-наклейки. Наводите камеру на QR по очереди. Нет или повреждена наклейка — сообщите менеджеру, он распечатает новую.</div>
+    <div id="expect" class="card hidden"></div>
+    <label class="f hidden" id="searchLbl">Или найти вручную<input id="search" autocomplete="off" placeholder="название, артикул или ID"></label>
+    <div id="results" class="card hidden"></div>
+    <div class="card"><b>Набрано: <span id="cnt">0</span></b><div id="cart"></div></div>
+    <label class="f">Комментарий (необязательно)<input id="comment" autocomplete="off"></label>
+    <button id="send" class="primary big">Отправить</button>
+  </section>
+
+  <section id="tab-mine" class="hidden">
+    <button id="reload" style="width:100%">Обновить</button>
+    <div id="mine"></div>
+  </section>
+</div>
+
+<div id="toast"></div>
+</div>
+<script>
+var S={items:{},list:[],name:'',pin:'',op:'Взял',cart:[],scanner:null,scanning:false,last:{}};
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,bad){var t=$('toast');t.textContent=m;t.className='show'+(bad?' bad':'');clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},2500);}
+function store(k,v){try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){}}
+function load(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+var API='https://script.google.com/macros/s/AKfycbxWH-UUBzKXoUf7TUL58xw7NdalA9SfuM2F6N4iDNejBMgHC8Lieq817Byka2qtKg8b/exec';
+function run(fn,args,ok,fail){var f=fail||function(e){toast(e.message||String(e),true);};fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:fn,args:args})}).then(function(r){return r.json();}).then(function(d){if(d.ok)ok(d.data);else f(new Error(d.error));}).catch(function(){f(new Error('Нет связи с сервером — проверьте интернет'));});}
+function fmt(n){return (Math.round(n*1000)/1000).toString().replace('.',',');}
+
+// ---- старт ----
+run('apiInit',[],function(d){
+  S.list=d.items;d.items.forEach(function(it){S.items[it[0]]=it;});
+  var sel=$('lName');sel.innerHTML='<option value="">— выберите себя —</option>'+d.mechanics.map(function(n){return '<option>'+esc(n)+'</option>';}).join('');
+  var n=load('sklad_name'),p=load('sklad_pin');
+  if(n){sel.value=n;}
+  if(n&&p){$('lPin').value=p;doLogin();}
+});
+$('lBtn').onclick=doLogin;
+$('lPin').onkeydown=function(e){if(e.key==='Enter')doLogin();};
+function doLogin(){
+  var n=$('lName').value,p=$('lPin').value.trim();$('lErr').textContent='';
+  if(!n||!p){$('lErr').textContent='Выберите себя и введите ПИН';return;}
+  $('lBtn').disabled=true;
+  run('apiLogin',[n,p,navigator.userAgent],function(d){
+    $('lBtn').disabled=false;S.name=n;S.pin=p;store('sklad_name',n);store('sklad_pin',p);
+    $('who').textContent=d.name;$('login').classList.add('hidden');$('main').classList.remove('hidden');renderMine(d);
+  },function(e){$('lBtn').disabled=false;store('sklad_pin',null);$('lErr').textContent=e.message||String(e);});
+}
+$('logout').onclick=function(){stopCam();store('sklad_pin',null);location.reload();};
+
+// ---- вкладки ----
+Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){b.onclick=function(){showTab(b.getAttribute('data-tab'));};});
+function showTab(t){
+  Array.prototype.forEach.call(document.querySelectorAll('nav button'),function(b){b.classList.toggle('on',b.getAttribute('data-tab')===t);});
+  $('tab-scan').classList.toggle('hidden',t!=='scan');$('tab-mine').classList.toggle('hidden',t!=='mine');
+  if(t==='mine'){stopCam();loadMine();}
+}
+// ---- операция ----
+Array.prototype.forEach.call(document.querySelectorAll('#ops button'),function(b){b.onclick=function(){setOp(b.getAttribute('data-op'));};});
+function setOp(op){
+  S.op=op;Array.prototype.forEach.call(document.querySelectorAll('#ops button'),function(b){b.classList.toggle('on',b.getAttribute('data-op')===op);});
+  $('znLbl').firstChild.nodeValue=op==='Приход'?'Номер накладной':'Заказ-наряд / акт ВР';
+  $('camTxt').textContent=op==='Вернул'?'Возврат — только под камерой: положите запчасть в свою ячейку в зоне обзора камеры, коробкой и наклейкой к камере.':(op==='Приход'?'Разгружайте и раскладывайте товар в зоне обзора камеры.':'Берите запчасти так, чтобы руки и коробка были в зоне обзора камеры.');
+  $('camChk').classList.toggle('hidden',op!=='Вернул');$('camOk').checked=false;
+  $('searchLbl').classList.add('hidden');$('results').classList.add('hidden');
+  if(op==='Вернул'){var before=S.cart.length;S.cart=S.cart.filter(function(c){return c.scanned;});if(S.cart.length<before)toast('Для возврата оставлены только отсканированные позиции',true);}
+  else{S.expect=null;}
+  renderExpect();renderCart();
+}
+// ---- сканирование ----
+function parseId(t){var m=String(t||'').toUpperCase().match(/V[0-9]{3,}/g);return m?m[m.length-1]:null;}
+function onCode(text,force){
+  var id=parseId(text);if(!id){toast('Это не наклейка склада',true);return;}
+  var now=Date.now();if(!force&&S.last[id]&&now-S.last[id]<2500)return;S.last[id]=now;
+  addItem(id,true);
+}
+function addItem(id,scanned){
+  var it=S.items[id];if(!it){toast('Нет в справочнике: '+id,true);return;}
+  if(!scanned){toast('Только сканированием QR-наклейки на полке',true);return;}
+  var c=S.cart.find(function(x){return x.id===id;});
+  if(c){c.qty+=1;if(scanned)c.scanned=true;}else S.cart.unshift({id:id,qty:1,scanned:!!scanned});
+  renderCart();if(navigator.vibrate)navigator.vibrate(80);
+  toast('+1 '+it[1]);
+}
+$('camBtn').onclick=function(){if(S.scanning)stopCam();else startCam();};
+function startCam(){
+  if(!window.Html5Qrcode){toast('Сканер не загрузился, используйте «Фото QR»',true);return;}
+  if(!S.scanner)S.scanner=new Html5Qrcode('reader');
+  S.scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:230,height:230}},function(t){onCode(t,false);},function(){})
+  .then(function(){S.scanning=true;$('camBtn').textContent='Остановить камеру';$('camMsg').textContent='Наводите на QR по очереди. Повтор той же наклейки — через 2–3 секунды.';})
+  .catch(function(){$('camMsg').textContent='Камера внутри страницы недоступна — нажимайте «Фото QR»: откроется камера, снимите наклейку.';toast('Камера недоступна — используйте «Фото QR»',true);});
+}
+function stopCam(){if(S.scanner&&S.scanning){S.scanner.stop().catch(function(){});}S.scanning=false;$('camBtn').textContent='Сканировать камерой';}
+$('photo').onchange=function(){
+  var f=this.files&&this.files[0],inp=this;if(!f)return;
+  if(!window.Html5Qrcode){toast('Сканер не загрузился',true);return;}
+  var q=new Html5Qrcode('readerFile');
+  q.scanFile(f,false).then(function(t){onCode(t,true);}).catch(function(){toast('QR не распознан — снимите ближе и ровнее',true);})
+  .then(function(){inp.value='';try{q.clear();}catch(e){}});
+};
+// ---- ручной поиск ----
+$('search').oninput=function(){
+  var q=this.value.trim().toLowerCase(),box=$('results');
+  if(q.length<2){box.classList.add('hidden');return;}
+  var r=S.list.filter(function(it){return (it[0]+' '+it[1]+' '+it[3]).toLowerCase().indexOf(q)>=0;}).slice(0,12);
+  box.innerHTML=r.length?r.map(function(it){return '<div class="res" data-id="'+esc(it[0])+'">'+esc(it[1])+'<br><small>'+esc(it[0])+(it[3]?' · арт. '+esc(it[3]):'')+' · на складе '+fmt(it[4])+' '+esc(it[2])+'</small></div>';}).join(''):'<div class="res">Ничего не найдено</div>';
+  box.classList.remove('hidden');
+};
+$('results').onclick=function(e){var d=e.target.closest('.res');if(d&&d.getAttribute('data-id')){addItem(d.getAttribute('data-id'),false);$('search').value='';this.classList.add('hidden');}};
+// ---- корзина ----
+function renderCart(){
+  $('cnt').textContent=S.cart.length;renderExpect();
+  $('cart').innerHTML=S.cart.length?S.cart.map(function(c){var it=S.items[c.id]||[c.id,'?','',''];
+    return '<div class="item" data-id="'+esc(c.id)+'"><div class="nm">'+esc(it[1])+'<small>'+esc(c.id)+' · '+esc(it[2])+'</small></div>'+
+    '<div class="qty"><button data-a="m">−</button><input data-a="q" inputmode="decimal" value="'+fmt(c.qty)+'"><button data-a="p">+</button></div>'+
+    '<button class="del" data-a="x">×</button></div>';}).join(''):'<div class="muted">Пока пусто — сканируйте QR на коробках.</div>';
+  $('send').textContent=S.cart.length?'Отправить ('+S.cart.length+')':'Отправить';
+}
+$('cart').onclick=function(e){
+  var b=e.target.closest('button');if(!b)return;var row=e.target.closest('.item');var id=row.getAttribute('data-id');
+  var c=S.cart.find(function(x){return x.id===id;});var a=b.getAttribute('data-a');
+  if(a==='p')c.qty+=1;if(a==='m')c.qty=Math.max(1,c.qty-1);if(a==='x')S.cart=S.cart.filter(function(x){return x.id!==id;});
+  renderCart();
+};
+$('cart').onchange=function(e){
+  if(e.target.getAttribute('data-a')!=='q')return;var id=e.target.closest('.item').getAttribute('data-id');
+  var c=S.cart.find(function(x){return x.id===id;});var v=parseFloat(String(e.target.value).replace(',','.'));
+  if(v>0)c.qty=v;renderCart();
+};
+$('send').onclick=function(){
+  var zn=$('zn').value.trim();
+  if(!zn){toast(S.op==='Приход'?'Укажите номер накладной':'Укажите заказ-наряд / акт ВР',true);$('zn').focus();return;}
+  if(!S.cart.length){toast('Список пуст',true);return;}
+  if(S.op==='Вернул'&&!$('camOk').checked){toast('Подтвердите галочкой, что кладёте запчасти под камерой',true);$('camWarn').scrollIntoView({behavior:'smooth',block:'center'});return;}
+  var b=this;b.disabled=true;b.textContent='Отправка…';
+  run('apiSubmit',[{name:S.name,pin:S.pin,op:S.op,zn:zn,comment:$('comment').value,items:S.cart,camOk:$('camOk').checked,ua:navigator.userAgent}],function(r){
+    b.disabled=false;S.cart=[];S.expect=null;$('comment').value='';$('camOk').checked=false;renderCart();stopCam();
+    toast('Записано позиций: '+r.count+' ('+S.op+', '+zn+')');
+  },function(e){b.disabled=false;renderCart();toast(e.message||String(e),true);});
+};
+// ---- числится на мне ----
+$('reload').onclick=loadMine;
+function loadMine(){$('mine').innerHTML='<div class="muted">Загрузка…</div>';run('apiMine',[S.name,S.pin,navigator.userAgent],renderMine);}
+function renderMine(d){
+  var z=d.zns.filter(function(x){return x.items.some(function(i){return i.net!==0;});});
+  if(!z.length){$('mine').innerHTML='<div class="card">По открытым заказ-нарядам на вас ничего не числится.</div>';return;}
+  $('mine').innerHTML='<div class="muted">Открытых заказ-нарядов: '+z.length+'. Закрытые по акту здесь не показываются.</div>'+
+  z.map(function(x){
+    var rows=x.items.filter(function(i){return i.net!==0;});
+    return '<div class="card"><div class="zn"><b>ЗН '+esc(x.zn)+'</b><span class="muted">'+esc(x.date)+'</span></div>'+
+    '<table><tr><th>Запчасть</th><th>Взял</th><th>Вернул</th><th>На мне</th></tr>'+
+    rows.map(function(i){return '<tr><td>'+esc(i.name)+'<br><small class="muted">'+esc(i.id)+'</small></td><td class="n">'+fmt(i.taken)+'</td><td class="n">'+fmt(i.returned)+'</td><td class="n"><b>'+fmt(i.net)+'</b> '+esc(i.unit)+'</td></tr>';}).join('')+
+    '</table><button class="ret" data-zn="'+esc(x.zn)+'" style="width:100%;margin-top:8px">Вернуть по этому ЗН (сканированием)</button></div>';
+  }).join('');
+  S._mine=z;
+}
+$('mine').onclick=function(e){
+  var b=e.target.closest('.ret');if(!b)return;var zn=b.getAttribute('data-zn');
+  var x=S._mine.find(function(z){return z.zn===zn;});
+  S.cart=[];setOp('Вернул');$('zn').value=zn;
+  S.expect=x.items.filter(function(i){return i.net>0;});
+  renderExpect();renderCart();showTab('scan');
+  toast('Подойдите к полке и отсканируйте QR каждой возвращаемой запчасти');
+};
+function renderExpect(){
+  var box=$('expect');
+  if(S.op!=='Вернул'||!S.expect||!S.expect.length){box.classList.add('hidden');return;}
+  box.innerHTML='<b>На вас по ЗН '+esc($('zn').value)+':</b><div class="muted">Сканируйте QR на полке каждой запчасти, которую кладёте обратно.</div>'+
+  S.expect.map(function(i){var c=S.cart.find(function(x){return x.id===i.id;});var got=c?c.qty:0;
+    return '<div class="item"><div class="nm">'+esc(i.name)+'<small>'+esc(i.id)+'</small></div><div>'+(got?'<b style="color:#188038">'+fmt(got)+'</b>':'0')+' / '+fmt(i.net)+' '+esc(i.unit)+'</div></div>';}).join('');
+  box.classList.remove('hidden');
+}
+renderCart();
+</script>
+</body></html>
