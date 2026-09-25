@@ -219,12 +219,12 @@ function loadMine(){$('mine').innerHTML='<div class="muted">Загрузка…<
 function renderMine(d){
   var z=d.zns.filter(function(x){return x.items.some(function(i){return i.net!==0;});});
   if(!z.length){$('mine').innerHTML='<div class="card">По открытым заказ-нарядам на вас ничего не числится.</div>';return;}
-  $('mine').innerHTML='<div class="muted">Открытых заказ-нарядов: '+z.length+'. Закрытые по акту здесь не показываются.</div>'+
+  $('mine').innerHTML='<div class="muted">Открытых заказ-нарядов: '+z.length+'. На мне = взял − вернул − установлено по акту.</div>'+
   z.map(function(x){
     var rows=x.items.filter(function(i){return i.net!==0;});
     return '<div class="card"><div class="zn"><b>ЗН '+esc(x.zn)+'</b><span class="muted">'+esc(x.date)+'</span></div>'+
-    '<table><tr><th>Запчасть</th><th>Взял</th><th>Вернул</th><th>На мне</th></tr>'+
-    rows.map(function(i){return '<tr><td>'+esc(i.name)+'<br><small class="muted">'+esc(i.id)+'</small></td><td class="n">'+fmt(i.taken)+'</td><td class="n">'+fmt(i.returned)+'</td><td class="n"><b>'+fmt(i.net)+'</b> '+esc(i.unit)+'</td></tr>';}).join('')+
+    '<table><tr><th>Запчасть</th><th>Взял</th><th>Вернул</th><th>По акту</th><th>На мне</th></tr>'+
+    rows.map(function(i){return '<tr><td>'+esc(i.name)+'<br><small class="muted">'+esc(i.id)+'</small></td><td class="n">'+fmt(i.taken)+'</td><td class="n">'+fmt(i.returned)+'</td><td class="n">'+fmt(i.act||0)+'</td><td class="n"><b>'+fmt(i.net)+'</b> '+esc(i.unit)+'</td></tr>';}).join('')+
     '</table><button class="ret" data-zn="'+esc(x.zn)+'" style="width:100%;margin-top:8px">Вернуть по этому ЗН (сканированием)</button></div>';
   }).join('');
   S._mine=z;
