@@ -2,59 +2,141 @@
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Склад Выборг — запчасти</title>
+<meta name="theme-color" content="#131311">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,Roboto,Arial,sans-serif;background:#f3f4f6;color:#111;font-size:16px}
+:root{
+  --bg:#131311;--panel:#1d1c19;--panel2:#26251f;--line:#35332d;
+  --ink:#f2eee4;--ink2:#b4ae9f;--ink3:#7f796c;
+  --amber:#f6a800;--green:#39c07c;--bone:#e6dfcc;--red:#ff5b47;
+  --op:var(--amber);--on-op:#171510;
+  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+body[data-op="Вернул"]{--op:var(--green)}
+body[data-op="Приход"]{--op:var(--bone)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg)}
+body{margin:0;font-family:'Golos Text',-apple-system,Roboto,Arial,sans-serif;color:var(--ink);font-size:16px;line-height:1.35}
+body::before{content:'';position:fixed;top:0;left:0;right:0;height:5px;z-index:5;
+  background:repeating-linear-gradient(-45deg,var(--op) 0 10px,var(--bg) 10px 20px);transition:background .2s}
 .hidden{display:none!important}
-.wrap{max-width:560px;margin:0 auto;padding:12px}
-h1{font-size:22px;margin:24px 0 16px}
-label.f{display:block;margin:10px 0;font-size:14px;color:#444}
-label.f input,label.f select{display:block;width:100%;margin-top:4px;padding:12px;font-size:17px;border:1px solid #ccc;border-radius:10px;background:#fff}
-button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 14px;font-size:16px;border-radius:10px;border:1px solid #ccc;background:#fff;color:#111;cursor:pointer}
-.primary{background:#1a73e8;border-color:#1a73e8;color:#fff}
-.big{width:100%;padding:16px;font-size:18px;margin-top:10px}
-.row{display:flex;gap:8px}.row>*{flex:1}
-header{display:flex;justify-content:space-between;align-items:center;padding:4px 0 10px}
-header b{font-size:15px}
-.link{border:none;background:none;color:#1a73e8;padding:6px}
-nav{display:flex;gap:6px;margin-bottom:12px}
-nav button{flex:1}
-nav button.on{background:#111;color:#fff;border-color:#111}
-.seg{display:flex;border:1px solid #ccc;border-radius:10px;overflow:hidden}
-.seg button{flex:1;border:none;border-radius:0;background:#fff}
-.seg button.on{background:#1a73e8;color:#fff}
-#reader{margin-top:10px;border-radius:10px;overflow:hidden;background:#000}
-.muted{color:#666;font-size:13px;margin:6px 0}
-.err{color:#c5221f;margin-top:10px}
-.card{background:#fff;border-radius:12px;padding:10px 12px;margin:8px 0;box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.item{display:flex;gap:8px;align-items:center;padding:8px 0;border-top:1px solid #eee}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px 0}
+
+/* ---- вход ---- */
+#login{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding-bottom:40px}
+.brand{margin:0 0 34px}
+.brand .tag{display:inline-block;font:600 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--on-op);background:var(--amber);padding:6px 8px;border-radius:3px}
+.brand h1{margin:14px 0 4px;font-size:44px;line-height:.95;font-weight:800;letter-spacing:-.02em;text-transform:uppercase}
+.brand h1 span{color:var(--amber)}
+.brand p{margin:8px 0 0;color:var(--ink2);font-size:15px}
+#lPin{font:600 26px/1 var(--mono);letter-spacing:.5em;text-align:center}
+
+/* ---- поля ---- */
+label.f{display:block;margin:14px 0;font:600 11px/1.2 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+label.f input,label.f select{display:block;width:100%;margin-top:7px;padding:14px 14px;font:500 17px/1.2 'Golos Text',sans-serif;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--panel);border:1.5px solid var(--line);border-radius:12px;outline:none;transition:border-color .15s}
+label.f select{appearance:none;-webkit-appearance:none;padding-right:40px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23b4ae9f' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+label.f input:focus,label.f select:focus{border-color:var(--op)}
+label.f input::placeholder{color:var(--ink3)}
+#zn{font:600 20px/1.2 var(--mono)!important;letter-spacing:.04em}
+
+/* ---- кнопки ---- */
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 16px;font:600 16px/1.1 'Golos Text',sans-serif;border-radius:12px;border:1.5px solid var(--line);background:var(--panel2);color:var(--ink);cursor:pointer;transition:transform .08s,background .15s,border-color .15s}
+button:active,.btn:active{transform:scale(.97)}
+button:disabled{opacity:.55}
+.primary{background:var(--op);border-color:var(--op);color:var(--on-op)}
+.big{width:100%;padding:18px;font-size:18px;margin-top:10px;border-radius:14px}
+.row{display:flex;gap:10px;margin-top:6px}.row>*{flex:1}
+.row .primary{flex:1.6}
+#camBtn::before,.btn::before{content:'';width:22px;height:22px;background:currentColor;flex:none;
+  -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+#camBtn{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM5 5v3h3V5zM16 5v3h3V5zM5 16v3h3v-3zM14 14h3v3h-3zM18 18h3v3h-3zM14 18h2v3h-2zM18 14h3v2h-3z'/%3E%3C/svg%3E")}
+.btn{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 3L7.2 5H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2h-3.2L15 3zm3 5a5 5 0 110 10 5 5 0 010-10zm0 2a3 3 0 100 6 3 3 0 000-6z'/%3E%3C/svg%3E")}
+.link{border:1.5px solid var(--line);background:transparent;color:var(--ink2);padding:8px 12px;font-size:14px;border-radius:10px}
+
+/* ---- шапка и вкладки ---- */
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0 14px}
+header .me{display:flex;align-items:center;gap:10px;min-width:0}
+header .av{width:38px;height:38px;border-radius:10px;background:var(--amber);color:var(--on-op);display:flex;align-items:center;justify-content:center;font:700 15px/1 var(--mono);flex:none}
+header b{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header small{display:block;font:500 10px/1.3 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+nav{display:flex;gap:4px;margin-bottom:16px;padding:4px;background:var(--panel);border-radius:14px}
+nav button{flex:1;border:none;background:transparent;color:var(--ink2);padding:12px 8px;font-size:15px;border-radius:10px}
+nav button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--op)}
+
+/* ---- операция ---- */
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seg button{flex-direction:column;gap:4px;padding:14px 6px 12px;background:var(--panel);border:1.5px solid var(--line);font-size:17px;font-weight:700}
+.seg button::after{font:500 10px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.seg button[data-op="Взял"]::after{content:'со склада'}
+.seg button[data-op="Вернул"]::after{content:'на склад'}
+.seg button[data-op="Приход"]::after{content:'поставка'}
+.seg button.on{background:var(--op);border-color:var(--op);color:var(--on-op)}
+.seg button.on::after{color:rgba(23,21,16,.7)}
+
+/* ---- камера ---- */
+.warn{display:flex;flex-direction:column;gap:4px;background:var(--panel);border:1.5px solid var(--line);border-left:5px solid var(--op);border-radius:12px;padding:12px 14px;margin:14px 0 4px;font-size:14px;color:var(--ink2)}
+.warn b{color:var(--ink);font-size:15px}
+.warn label{display:flex;gap:12px;align-items:center;margin-top:8px;padding:10px 12px;background:var(--panel2);border-radius:10px;font-size:15px;font-weight:600;color:var(--ink)}
+.warn input{width:26px;height:26px;flex:none;accent-color:var(--green)}
+#reader{margin-top:12px;border-radius:14px;overflow:hidden;background:#000}
+#reader:not(:empty){border:2px solid var(--op)}
+#reader video{display:block}
+.muted{color:var(--ink3);font-size:13px;margin:8px 0}
+.err{color:var(--red);margin-top:12px;font-weight:500}
+
+/* ---- карточки и список ---- */
+.card{background:var(--panel);border:1.5px solid var(--line);border-radius:16px;padding:14px;margin:12px 0}
+.card-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.card-h b{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--ink3)}
+.count{font:700 13px/1 var(--mono);color:var(--on-op);background:var(--op);border-radius:20px;padding:5px 10px;min-width:30px;text-align:center}
+.item{display:flex;gap:10px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
 .item:first-child{border-top:none}
-.item .nm{flex:1;font-size:14px}
-.item .nm small{display:block;color:#666}
-.qty{display:flex;align-items:center;gap:4px}
-.qty button{width:38px;height:38px;padding:0;font-size:20px}
-.qty input{width:56px;height:38px;text-align:center;font-size:17px;border:1px solid #ccc;border-radius:8px}
-.del{border:none;background:none;color:#c5221f;font-size:22px;padding:4px 6px}
-.res{padding:10px;border-top:1px solid #eee;font-size:14px}
+.item .nm{flex:1;font-size:15px;min-width:0;overflow-wrap:anywhere}
+.item .nm small,.id{display:block;margin-top:3px;font:500 12px/1.2 var(--mono);color:var(--ink3)}
+.qty{display:flex;align-items:center;gap:4px;flex:none}
+.qty button{width:44px;height:44px;padding:0;font-size:22px;font-weight:500;border-radius:11px}
+.qty input{width:58px;height:44px;text-align:center;font:600 18px/1 var(--mono);color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:11px}
+.del{border:none;background:none;color:var(--ink3);font-size:26px;padding:6px 2px 6px 6px;flex:none}
+#cart .item{flex-wrap:wrap;row-gap:10px}
+#cart .item .nm{flex-basis:100%}
+#cart .del{margin-left:auto;border:1.5px solid var(--line);border-radius:11px;width:44px;height:44px;padding:0;font-size:22px}
+.empty{padding:22px 8px;text-align:center;color:var(--ink3);font-size:14px}
+.res{padding:12px 4px;border-top:1px solid var(--line);font-size:14px}
 .res:first-child{border-top:none}
-.res small{color:#666}
-table{width:100%;border-collapse:collapse;font-size:14px}
-td,th{padding:6px 4px;border-top:1px solid #eee;text-align:left;vertical-align:top}
-th{font-weight:600;color:#555;border-top:none}
-td.n{text-align:right;white-space:nowrap}
+.res small{color:var(--ink3)}
+.exp-row .got{font:700 16px/1 var(--mono);white-space:nowrap}
+.exp-row .got.ok{color:var(--green)}
+
+/* ---- отправка (прилипает к низу) ---- */
+.sendbar{position:sticky;bottom:0;margin:14px -16px 0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,rgba(19,19,17,0))}
+.sendbar .big{margin:0}
+
+/* ---- числится на мне ---- */
 .zn{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.zn b{font-size:16px}
-.warn{background:#fff4e5;border:1px solid #f0b35a;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:14px}
-.warn label{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:15px;font-weight:600}
-.warn input{width:24px;height:24px;flex:none}
-#toast{position:fixed;left:50%;top:12px;transform:translateX(-50%);background:#111;color:#fff;padding:12px 16px;border-radius:10px;font-size:15px;max-width:90%;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
-#toast.show{opacity:.95}#toast.bad{background:#c5221f}
+.zn b{font:700 20px/1 var(--mono);letter-spacing:.02em}
+.zn b span{font:600 11px/1 var(--mono);letter-spacing:.12em;color:var(--ink3);margin-right:6px}
+.zn .muted{margin:0}
+.mi{display:flex;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.mi .nm{flex:1;min-width:0;font-size:15px;overflow-wrap:anywhere}
+.stats{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:6px;font:500 12px/1.2 var(--mono);color:var(--ink3)}
+.stats i{font-style:normal;color:var(--ink2)}
+.onme{text-align:right;flex:none}
+.onme b{display:block;font:700 26px/1 var(--mono);color:var(--amber)}
+.onme small{font:500 11px/1 var(--mono);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.ret{width:100%;margin-top:10px;background:transparent;border-color:var(--green);color:var(--green)}
+#reload{width:100%}
+
+#toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-8px);background:var(--ink);color:var(--bg);padding:13px 18px;border-radius:12px;font-size:15px;font-weight:600;max-width:92%;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:9;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#toast.show{opacity:1;transform:translate(-50%,0)}#toast.bad{background:var(--red);color:#fff}
 </style></head>
-<body><div class="wrap">
+<body data-op="Взял"><div class="wrap">
 
 <div id="login">
-  <h1>Склад Выборг</h1>
+  <div class="brand"><span class="tag">Учёт запчастей</span><h1>Склад<br><span>Выборг</span></h1><p>Войдите, чтобы брать и возвращать запчасти по QR.</p></div>
   <label class="f">Механик<select id="lName"><option value="">Загрузка…</option></select></label>
   <label class="f">ПИН<input id="lPin" type="password" inputmode="numeric" autocomplete="off"></label>
   <button id="lBtn" class="primary big">Войти</button>
@@ -62,7 +144,7 @@ td.n{text-align:right;white-space:nowrap}
 </div>
 
 <div id="main" class="hidden">
-  <header><b id="who"></b><button id="logout" class="link">Выйти</button></header>
+  <header><div class="me"><div class="av" id="av"></div><div style="min-width:0"><small>Склад Выборг</small><b id="who"></b></div></div><button id="logout" class="link">Выйти</button></header>
   <nav><button data-tab="scan" class="on">Набрать запчасти</button><button data-tab="mine">Числится на мне</button></nav>
 
   <section id="tab-scan">
@@ -70,7 +152,7 @@ td.n{text-align:right;white-space:nowrap}
     <label class="f" id="znLbl">Заказ-наряд / акт ВР<input id="zn" autocomplete="off" placeholder="например 101226"></label>
     <div class="warn" id="camWarn"><b>Работайте под камерой!</b> <span id="camTxt">Берите запчасти так, чтобы руки и коробка были в зоне обзора камеры.</span><label id="camChk" class="hidden"><input type="checkbox" id="camOk">Кладу запчасти в ячейку под камерой</label></div>
     <div class="row">
-      <button id="camBtn" class="primary">Сканировать камерой</button>
+      <button id="camBtn" class="primary">Сканировать</button>
       <label class="btn">Фото QR<input id="photo" type="file" accept="image/*" capture="environment" class="hidden"></label>
     </div>
     <div id="reader"></div><div id="readerFile" style="width:1px;height:1px;overflow:hidden"></div>
@@ -78,9 +160,9 @@ td.n{text-align:right;white-space:nowrap}
     <div id="expect" class="card hidden"></div>
     <label class="f hidden" id="searchLbl">Или найти вручную<input id="search" autocomplete="off" placeholder="название, артикул или ID"></label>
     <div id="results" class="card hidden"></div>
-    <div class="card"><b>Набрано: <span id="cnt">0</span></b><div id="cart"></div></div>
+    <div class="card"><div class="card-h"><b>Набрано</b><span class="count" id="cnt">0</span></div><div id="cart"></div></div>
     <label class="f">Комментарий (необязательно)<input id="comment" autocomplete="off"></label>
-    <button id="send" class="primary big">Отправить</button>
+    <div class="sendbar"><button id="send" class="primary big">Отправить</button></div>
   </section>
 
   <section id="tab-mine" class="hidden">
@@ -118,7 +200,7 @@ function doLogin(){
   $('lBtn').disabled=true;
   run('apiLogin',[n,p,navigator.userAgent],function(d){
     $('lBtn').disabled=false;S.name=n;S.pin=p;store('sklad_name',n);store('sklad_pin',p);
-    $('who').textContent=d.name;$('login').classList.add('hidden');$('main').classList.remove('hidden');renderMine(d);
+    $('who').textContent=d.name;$('av').textContent=String(d.name).split(' ').slice(0,2).map(function(w){return w.charAt(0);}).join('');$('login').classList.add('hidden');$('main').classList.remove('hidden');renderMine(d);
   },function(e){$('lBtn').disabled=false;store('sklad_pin',null);$('lErr').textContent=e.message||String(e);});
 }
 $('logout').onclick=function(){stopCam();store('sklad_pin',null);location.reload();};
@@ -133,7 +215,7 @@ function showTab(t){
 // ---- операция ----
 Array.prototype.forEach.call(document.querySelectorAll('#ops button'),function(b){b.onclick=function(){setOp(b.getAttribute('data-op'));};});
 function setOp(op){
-  S.op=op;Array.prototype.forEach.call(document.querySelectorAll('#ops button'),function(b){b.classList.toggle('on',b.getAttribute('data-op')===op);});
+  S.op=op;document.body.setAttribute('data-op',op);Array.prototype.forEach.call(document.querySelectorAll('#ops button'),function(b){b.classList.toggle('on',b.getAttribute('data-op')===op);});
   $('znLbl').firstChild.nodeValue=op==='Приход'?'Номер накладной':'Заказ-наряд / акт ВР';
   $('camTxt').textContent=op==='Вернул'?'Возврат — только под камерой: положите запчасть в свою ячейку в зоне обзора камеры, коробкой и наклейкой к камере.':(op==='Приход'?'Разгружайте и раскладывайте товар в зоне обзора камеры.':'Берите запчасти так, чтобы руки и коробка были в зоне обзора камеры.');
   $('camChk').classList.toggle('hidden',op!=='Вернул');$('camOk').checked=false;
@@ -162,10 +244,10 @@ function startCam(){
   if(!window.Html5Qrcode){toast('Сканер не загрузился, используйте «Фото QR»',true);return;}
   if(!S.scanner)S.scanner=new Html5Qrcode('reader');
   S.scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:230,height:230}},function(t){onCode(t,false);},function(){})
-  .then(function(){S.scanning=true;$('camBtn').textContent='Остановить камеру';$('camMsg').textContent='Наводите на QR по очереди. Повтор той же наклейки — через 2–3 секунды.';})
+  .then(function(){S.scanning=true;$('camBtn').textContent='Стоп';$('camMsg').textContent='Наводите на QR по очереди. Повтор той же наклейки — через 2–3 секунды.';})
   .catch(function(){$('camMsg').textContent='Камера внутри страницы недоступна — нажимайте «Фото QR»: откроется камера, снимите наклейку.';toast('Камера недоступна — используйте «Фото QR»',true);});
 }
-function stopCam(){if(S.scanner&&S.scanning){S.scanner.stop().catch(function(){});}S.scanning=false;$('camBtn').textContent='Сканировать камерой';}
+function stopCam(){if(S.scanner&&S.scanning){S.scanner.stop().catch(function(){});}S.scanning=false;$('camBtn').textContent='Сканировать';}
 $('photo').onchange=function(){
   var f=this.files&&this.files[0],inp=this;if(!f)return;
   if(!window.Html5Qrcode){toast('Сканер не загрузился',true);return;}
@@ -188,7 +270,7 @@ function renderCart(){
   $('cart').innerHTML=S.cart.length?S.cart.map(function(c){var it=S.items[c.id]||[c.id,'?','',''];
     return '<div class="item" data-id="'+esc(c.id)+'"><div class="nm">'+esc(it[1])+'<small>'+esc(c.id)+' · '+esc(it[2])+'</small></div>'+
     '<div class="qty"><button data-a="m">−</button><input data-a="q" inputmode="decimal" value="'+fmt(c.qty)+'"><button data-a="p">+</button></div>'+
-    '<button class="del" data-a="x">×</button></div>';}).join(''):'<div class="muted">Пока пусто — сканируйте QR на коробках.</div>';
+    '<button class="del" data-a="x">×</button></div>';}).join(''):'<div class="empty">Пока пусто — сканируйте QR на коробках</div>';
   $('send').textContent=S.cart.length?'Отправить ('+S.cart.length+')':'Отправить';
 }
 $('cart').onclick=function(e){
@@ -218,14 +300,15 @@ $('reload').onclick=loadMine;
 function loadMine(){$('mine').innerHTML='<div class="muted">Загрузка…</div>';run('apiMine',[S.name,S.pin,navigator.userAgent],renderMine);}
 function renderMine(d){
   var z=d.zns.filter(function(x){return x.items.some(function(i){return i.net!==0;});});
-  if(!z.length){$('mine').innerHTML='<div class="card">По открытым заказ-нарядам на вас ничего не числится.</div>';return;}
+  if(!z.length){$('mine').innerHTML='<div class="card empty">По открытым заказ-нарядам на вас ничего не числится</div>';return;}
   $('mine').innerHTML='<div class="muted">Открытых заказ-нарядов: '+z.length+'. На мне = взял − вернул − установлено по акту.</div>'+
   z.map(function(x){
     var rows=x.items.filter(function(i){return i.net!==0;});
-    return '<div class="card"><div class="zn"><b>ЗН '+esc(x.zn)+'</b><span class="muted">'+esc(x.date)+'</span></div>'+
-    '<table><tr><th>Запчасть</th><th>Взял</th><th>Вернул</th><th>По акту</th><th>На мне</th></tr>'+
-    rows.map(function(i){return '<tr><td>'+esc(i.name)+'<br><small class="muted">'+esc(i.id)+'</small></td><td class="n">'+fmt(i.taken)+'</td><td class="n">'+fmt(i.returned)+'</td><td class="n">'+fmt(i.act||0)+'</td><td class="n"><b>'+fmt(i.net)+'</b> '+esc(i.unit)+'</td></tr>';}).join('')+
-    '</table><button class="ret" data-zn="'+esc(x.zn)+'" style="width:100%;margin-top:8px">Вернуть по этому ЗН (сканированием)</button></div>';
+    return '<div class="card"><div class="zn"><b><span>ЗН</span>'+esc(x.zn)+'</b><span class="muted">'+esc(x.date)+'</span></div>'+
+    rows.map(function(i){return '<div class="mi"><div class="nm">'+esc(i.name)+'<span class="id">'+esc(i.id)+'</span>'+
+      '<div class="stats"><span>взял <i>'+fmt(i.taken)+'</i></span><span>вернул <i>'+fmt(i.returned)+'</i></span><span>по акту <i>'+fmt(i.act||0)+'</i></span></div></div>'+
+      '<div class="onme"><b>'+fmt(i.net)+'</b><small>'+esc(i.unit)+' на мне</small></div></div>';}).join('')+
+    '<button class="ret" data-zn="'+esc(x.zn)+'">Вернуть по этому ЗН — сканированием</button></div>';
   }).join('');
   S._mine=z;
 }
@@ -240,9 +323,9 @@ $('mine').onclick=function(e){
 function renderExpect(){
   var box=$('expect');
   if(S.op!=='Вернул'||!S.expect||!S.expect.length){box.classList.add('hidden');return;}
-  box.innerHTML='<b>На вас по ЗН '+esc($('zn').value)+':</b><div class="muted">Сканируйте QR на полке каждой запчасти, которую кладёте обратно.</div>'+
+  box.innerHTML='<div class="card-h"><b>На вас по ЗН '+esc($('zn').value)+'</b></div><div class="muted">Сканируйте QR на полке каждой запчасти, которую кладёте обратно.</div>'+
   S.expect.map(function(i){var c=S.cart.find(function(x){return x.id===i.id;});var got=c?c.qty:0;
-    return '<div class="item"><div class="nm">'+esc(i.name)+'<small>'+esc(i.id)+'</small></div><div>'+(got?'<b style="color:#188038">'+fmt(got)+'</b>':'0')+' / '+fmt(i.net)+' '+esc(i.unit)+'</div></div>';}).join('');
+    return '<div class="item exp-row"><div class="nm">'+esc(i.name)+'<small>'+esc(i.id)+'</small></div><div class="got'+(got>=i.net?' ok':'')+'">'+fmt(got)+' / '+fmt(i.net)+' <small>'+esc(i.unit)+'</small></div></div>';}).join('');
   box.classList.remove('hidden');
 }
 renderCart();
