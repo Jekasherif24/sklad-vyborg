@@ -115,6 +115,11 @@ nav button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 
 .res small{color:var(--ink3)}
 .exp-row .got{font:700 16px/1 var(--mono);white-space:nowrap}
 .exp-row .got.ok{color:var(--green)}
+.stock{display:inline-block;margin-top:5px;padding:3px 8px;border-radius:6px;font:600 12px/1.2 var(--mono);background:var(--panel2);color:var(--ink2)}
+.stock b{color:var(--ink);font-weight:700}
+.stock.low{background:rgba(255,91,71,.15);color:var(--red)}
+.stock.low b{color:var(--red)}
+#stockAt{font:500 11px/1.2 var(--mono);color:var(--ink3);text-transform:none;letter-spacing:0}
 
 /* ---- отправка (прилипает к низу) ---- */
 .sendbar{position:sticky;bottom:0;margin:14px -16px 0;padding:12px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--bg) 70%,rgba(19,19,17,0))}
@@ -166,7 +171,7 @@ nav button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 
     <div id="expect" class="card hidden"></div>
     <label class="f hidden" id="searchLbl">Или найти вручную<input id="search" autocomplete="off" placeholder="название, артикул или ID"></label>
     <div id="results" class="card hidden"></div>
-    <div class="card"><div class="card-h"><b>Набрано</b><span class="count" id="cnt">0</span></div><div id="cart"></div></div>
+    <div class="card"><div class="card-h"><b>Набрано <span id="stockAt"></span></b><span class="count" id="cnt">0</span></div><div id="cart"></div></div>
     <label class="f">Комментарий (необязательно)<input id="comment" autocomplete="off"></label>
     <div class="sendbar"><button id="send" class="primary big">Отправить</button></div>
   </section>
@@ -190,9 +195,20 @@ var API='https://script.google.com/macros/s/AKfycbxWH-UUBzKXoUf7TUL58xw7NdalA9Sf
 function run(fn,args,ok,fail){var f=fail||function(e){toast(e.message||String(e),true);};fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({fn:fn,args:args})}).then(function(r){return r.json();}).then(function(d){if(d.ok)ok(d.data);else f(new Error(d.error));}).catch(function(){f(new Error('Нет связи с сервером — проверьте интернет'));});}
 function fmt(n){return (Math.round(n*1000)/1000).toString().replace('.',',');}
 
+// ---- остатки ----
+function setItems(list){S.list=list;S.items={};list.forEach(function(it){S.items[it[0]]=it;});S.stockAt=new Date();
+  var t=S.stockAt;$('stockAt').textContent='· остатки на '+('0'+t.getHours()).slice(-2)+':'+('0'+t.getMinutes()).slice(-2);}
+function refreshStock(){if(S._rs)return;S._rs=true;run('apiInit',[],function(d){S._rs=false;setItems(d.items);renderCart();},function(){S._rs=false;});}
+function stockOf(id){var it=S.items[id];return it?Number(it[4])||0:0;}
+function stockHtml(id,need){var it=S.items[id];if(!it)return '';var n=stockOf(id);
+  var low=S.op==='Взял'&&need>n;
+  return '<span class="stock'+(low?' low':'')+'">на складе сегодня: <b>'+fmt(n)+'</b> '+esc(it[2])+(low?' — меньше, чем берёте!':'')+'</span>';}
+setInterval(function(){if(S.name&&!document.hidden)refreshStock();},5*60*1000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden&&S.name&&S.stockAt&&Date.now()-S.stockAt>60000)refreshStock();});
+
 // ---- старт ----
 run('apiInit',[],function(d){
-  S.list=d.items;d.items.forEach(function(it){S.items[it[0]]=it;});
+  setItems(d.items);
   var sel=$('lName');sel.innerHTML='<option value="">— выберите себя —</option>'+d.mechanics.map(function(n){return '<option>'+esc(n)+'</option>';}).join('');
   var n=load('sklad_name'),p=load('sklad_pin');
   if(n){sel.value=n;}
@@ -243,10 +259,11 @@ function addItem(id,scanned){
   var c=S.cart.find(function(x){return x.id===id;});
   if(c){c.qty+=1;if(scanned)c.scanned=true;}else S.cart.unshift({id:id,qty:1,scanned:!!scanned});
   renderCart();if(navigator.vibrate)navigator.vibrate(80);
-  toast('+1 '+it[1]);
+  toast('+1 '+it[1]+' · на складе: '+fmt(stockOf(id))+' '+it[2]);
 }
 $('camBtn').onclick=function(){if(S.scanning)stopCam();else startCam();};
 function startCam(){
+  if(!S.stockAt||Date.now()-S.stockAt>60000)refreshStock();
   if(!window.Html5Qrcode){toast('Сканер не загрузился, используйте «Фото QR»',true);return;}
   if(!S.scanner)S.scanner=new Html5Qrcode('reader',{formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE],experimentalFeatures:{useBarCodeDetectorIfSupported:true},verbose:false});
   var cfg={fps:15,disableFlip:true,
@@ -304,7 +321,7 @@ $('results').onclick=function(e){var d=e.target.closest('.res');if(d&&d.getAttri
 function renderCart(){
   $('cnt').textContent=S.cart.length;renderExpect();
   $('cart').innerHTML=S.cart.length?S.cart.map(function(c){var it=S.items[c.id]||[c.id,'?','',''];
-    return '<div class="item" data-id="'+esc(c.id)+'"><div class="nm">'+esc(it[1])+'<small>'+esc(c.id)+' · '+esc(it[2])+'</small></div>'+
+    return '<div class="item" data-id="'+esc(c.id)+'"><div class="nm">'+esc(it[1])+'<small>'+esc(c.id)+' · '+esc(it[2])+'</small>'+stockHtml(c.id,c.qty)+'</div>'+
     '<div class="qty"><button data-a="m">−</button><input data-a="q" inputmode="decimal" value="'+fmt(c.qty)+'"><button data-a="p">+</button></div>'+
     '<button class="del" data-a="x">×</button></div>';}).join(''):'<div class="empty">Пока пусто — сканируйте QR на коробках</div>';
   $('send').textContent=S.cart.length?'Отправить ('+S.cart.length+')':'Отправить';
@@ -328,7 +345,7 @@ $('send').onclick=function(){
   var b=this;b.disabled=true;b.textContent='Отправка…';
   run('apiSubmit',[{name:S.name,pin:S.pin,op:S.op,zn:zn,comment:$('comment').value,items:S.cart,camOk:$('camOk').checked,ua:navigator.userAgent}],function(r){
     b.disabled=false;S.cart=[];S.expect=null;$('comment').value='';$('camOk').checked=false;renderCart();stopCam();
-    toast('Записано позиций: '+r.count+' ('+S.op+', '+zn+')');
+    toast('Записано позиций: '+r.count+' ('+S.op+', '+zn+')');refreshStock();
   },function(e){b.disabled=false;renderCart();toast(e.message||String(e),true);});
 };
 // ---- числится на мне ----
